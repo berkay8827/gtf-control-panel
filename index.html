@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
+  <title>GTF Control Panel</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#" aria-label="GTF Dashboard">
+        <span class="brand-mark">G</span><span><strong>GTF</strong><small>CONTROL PANEL</small></span>
+      </a>
+      <div class="side-label">MENÜ</div>
+      <nav id="navigation" class="navigation">
+        <button class="nav-link active" data-page="dashboard"><span>◫</span> Dashboard</button>
+        <button class="nav-link" data-page="staff"><span>♙</span> Unsere Mitarbeiter</button>
+        <button class="nav-link" data-page="rules"><span>≡</span> Regelwerk</button>
+        <button class="nav-link" data-page="checklist"><span>☑</span> Checkliste</button>
+        <button class="nav-link" data-page="clothing"><span>◇</span> Kleidung</button>
+      </nav>
+      <div class="sidebar-bottom"><span class="status-dot"></span> GTF · INTERN<br><small>Interne Verwaltungsoberfläche</small></div>
+    </aside>
+    <main class="main">
+      <header class="topbar"><div><div class="eyebrow">GRAND ROLEPLAY · DE03</div><h1 id="page-title">Dashboard</h1></div><div class="topbar-right"><span class="live-pill"><i></i> SYSTEMÜBERSICHT</span><div class="avatar">G</div></div></header>
+      <section id="page-content" class="content"></section>
+      <footer>Powered by Moo Weshlove</footer>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
