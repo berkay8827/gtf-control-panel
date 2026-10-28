@@ -1,34 +1,206 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1220">
-  <title>GTF Control Panel</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTF Control Panel</title>
+<style>
+:root{--bg:#090e19;--panel:#111a2b;--panel2:#172238;--gold:#d4b36b;--text:#f1f4fa;--muted:#9ba9bf;--line:#27344b;--green:#4cce91}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px Arial,sans-serif}
+header{height:76px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;background:#0d1422;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3}
+.brand{font-size:21px;font-weight:bold;letter-spacing:2px}.brand span{color:var(--gold)}
+.pill{border:1px solid #655533;border-radius:20px;padding:8px 12px;color:var(--gold);font-size:12px}
+.layout{display:flex;min-height:calc(100vh - 76px)}
+aside{width:230px;background:#0d1422;border-right:1px solid var(--line);padding:24px 14px;flex-shrink:0}
+.navlabel{font-size:10px;letter-spacing:2px;color:#65738a;padding:12px}
+nav button{width:100%;text-align:left;border:0;background:transparent;color:var(--muted);padding:13px 12px;border-radius:8px;margin:3px 0;cursor:pointer;font-size:14px}
+nav button:hover,nav button.active{background:#202b40;color:var(--gold)}
+main{padding:30px;width:100%;max-width:1500px;margin:0 auto}
+h1{font-size:28px;margin:0 0 9px}h2{font-size:18px;margin:0 0 18px}
+.subtitle{color:var(--muted);margin-bottom:28px}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:24px}
+.card,.section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:21px}
+.stat-label{color:var(--muted);font-size:13px}.stat{font-size:30px;font-weight:bold;margin-top:12px}.gold{color:var(--gold)}
+.section{margin-bottom:20px}.sectionhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+button.action{background:var(--gold);color:#111827;border:0;border-radius:7px;padding:10px 14px;font-weight:bold;cursor:pointer}
+button.secondary{background:#202b40;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:9px 12px;cursor:pointer}
+button.danger{background:#4b2029;color:#ffd9df;border:1px solid #773442;border-radius:7px;padding:8px 10px;cursor:pointer}
+input,select,textarea{width:100%;background:#0b1220;color:var(--text);border:1px solid var(--line);border-radius:7px;padding:11px;margin:5px 0 12px}
+label{font-size:12px;color:var(--muted)}
+.formgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;white-space:nowrap}
+th{text-align:left;color:#8292aa;font-size:11px;text-transform:uppercase;letter-spacing:1px}
+th,td{padding:14px 12px;border-bottom:1px solid var(--line)}
+td{font-size:13px}tbody tr:hover{background:#172238}
+.tag{display:inline-block;padding:5px 8px;border-radius:5px;background:#222d42;color:#d5dfef;font-size:11px}
+.status{color:var(--green)}.muted{color:var(--muted)}.hidden{display:none!important}
+.rulelist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.rule{padding:15px;background:#0d1525;border:1px solid var(--line);border-radius:9px;line-height:1.6}
+.checkrow{display:flex;gap:12px;align-items:center;padding:14px;border-bottom:1px solid var(--line)}
+.checkrow input{width:auto;margin:0;accent-color:var(--gold)}
+.outfit{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+footer{text-align:center;color:#69768b;font-size:12px;padding:30px;border-top:1px solid var(--line)}
+.notice{padding:12px;background:#182a2b;border:1px solid #315d51;border-radius:8px;color:#a7ebcd;margin-bottom:18px;font-size:13px}
+@media(max-width:850px){.layout{display:block}aside{width:100%;padding:10px}nav{display:flex;overflow-x:auto}nav button{min-width:max-content;width:auto}main{padding:16px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.formgrid{grid-template-columns:1fr 1fr}.outfit{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.grid,.rulelist,.outfit,.formgrid{grid-template-columns:1fr}.brand{font-size:16px}header{padding:0 14px}}
+</style>
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar">
-      <a class="brand" href="#" aria-label="GTF Dashboard">
-        <span class="brand-mark">G</span><span><strong>GTF</strong><small>CONTROL PANEL</small></span>
-      </a>
-      <div class="side-label">MENÜ</div>
-      <nav id="navigation" class="navigation">
-        <button class="nav-link active" data-page="dashboard"><span>◫</span> Dashboard</button>
-        <button class="nav-link" data-page="staff"><span>♙</span> Unsere Mitarbeiter</button>
-        <button class="nav-link" data-page="rules"><span>≡</span> Regelwerk</button>
-        <button class="nav-link" data-page="checklist"><span>☑</span> Checkliste</button>
-        <button class="nav-link" data-page="clothing"><span>◇</span> Kleidung</button>
-      </nav>
-      <div class="sidebar-bottom"><span class="status-dot"></span> GTF · INTERN<br><small>Interne Verwaltungsoberfläche</small></div>
-    </aside>
-    <main class="main">
-      <header class="topbar"><div><div class="eyebrow">GRAND ROLEPLAY · DE03</div><h1 id="page-title">Dashboard</h1></div><div class="topbar-right"><span class="live-pill"><i></i> SYSTEMÜBERSICHT</span><div class="avatar">G</div></div></header>
-      <section id="page-content" class="content"></section>
-      <footer>Powered by Moo Weshlove</footer>
-    </main>
+<header>
+  <div class="brand"><span>GTF</span> CONTROL PANEL</div>
+  <div class="pill">● INTERNER BEREICH</div>
+</header>
+<div class="layout">
+<aside>
+  <div class="navlabel">HAUPTMENÜ</div>
+  <nav id="nav">
+    <button class="active" data-page="dashboard">▦ &nbsp; Dashboard</button>
+    <button data-page="mitarbeiter">♙ &nbsp; Unsere Mitarbeiter</button>
+    <button data-page="regelwerk">▤ &nbsp; Regelwerk</button>
+    <button data-page="checkliste">☑ &nbsp; Checkliste</button>
+    <button data-page="kleidung">♧ &nbsp; Kleidung</button>
+  </nav>
+  <div style="margin:30px 12px;color:#66758c;font-size:12px;line-height:1.8">GTF<br><span style="color:var(--gold)">Management System</span></div>
+</aside>
+<main>
+<section id="dashboard" class="page">
+  <h1>Dashboard</h1><div class="subtitle">Willkommen im GTF Control Panel.</div>
+  <div class="notice">GTF Management · Interne Übersicht</div>
+  <div class="grid">
+    <div class="card"><div class="stat-label">MITARBEITER GESAMT</div><div class="stat" id="statTotal">15</div></div>
+    <div class="card"><div class="stat-label">LEITUNG</div><div class="stat gold" id="statLead">1</div></div>
+    <div class="card"><div class="stat-label">VIZE-KANDIDATEN</div><div class="stat" id="statVice">2</div></div>
+    <div class="card"><div class="stat-label">STATUS</div><div class="stat status" style="font-size:21px">Aktiv</div></div>
   </div>
-  <script src="app.js"></script>
+  <div class="section"><div class="sectionhead"><h2>Management-Übersicht</h2><button class="secondary" onclick="showPage('mitarbeiter')">Mitarbeiter ansehen →</button></div>
+    <p class="muted">Verwalte hier die Übersicht, das Regelwerk, die Checkliste und die Bekleidungsvorgaben der GTF.</p>
+    <p>Aktuelle Leitung: <strong>Hakim Dark</strong></p>
+    <p>GTF-Berater: <strong>Leon Tutuh</strong></p>
+    <p>Vize-Auswahl: <strong>Moo Weshlove</strong> und <strong>Lucaa Black</strong></p>
+  </div>
+  <div class="section"><h2>Wichtiger Hinweis</h2><p class="muted">Hakim Dark befindet sich bis einschließlich 29.10.2026 in der Probezeit.</p></div>
+</section>
+
+<section id="mitarbeiter" class="page hidden">
+  <h1>Unsere Mitarbeiter</h1><div class="subtitle">Mitarbeiterübersicht und GTF-Dienstgrade.</div>
+  <div class="section">
+    <div class="sectionhead"><h2>Mitarbeiterliste</h2><button class="action" onclick="toggleForm()">+ Mitarbeiter hinzufügen</button></div>
+    <div id="staffForm" class="hidden">
+      <div class="formgrid">
+        <div><label>Name</label><input id="newName" placeholder="Vorname Nachname"></div>
+        <div><label>Personalnummer</label><input id="newId" placeholder="A-120"></div>
+        <div><label>Rolle / Abteilung</label><select id="newRole"><option>GTF-Agent</option><option>Leitung</option><option>Vize</option><option>Vize-Kandidat</option><option>GTF-Berater</option><option>2. Abteilung</option><option>Aushilfe</option></select></div>
+      </div>
+      <button class="action" onclick="addStaff()">Speichern</button>
+      <button class="secondary" onclick="toggleForm()">Abbrechen</button>
+      <p class="muted" style="font-size:12px">Demo-Funktion: Änderungen werden nur in diesem Browser gespeichert.</p>
+    </div>
+    <div style="margin:14px 0"><input id="search" placeholder="Mitarbeiter suchen …" oninput="renderStaff()"></div>
+    <div class="tablewrap"><table><thead><tr><th>Name</th><th>Personalnummer</th><th>Position</th><th>Aktion</th></tr></thead><tbody id="staffRows"></tbody></table></div>
+  </div>
+</section>
+
+<section id="regelwerk" class="page hidden">
+  <h1>Regelwerk</h1><div class="subtitle">Grundregeln für den GTF-Dienst.</div>
+  <div class="section"><h2>Verhalten & Professionalität</h2><div class="rulelist">
+    <div class="rule"><strong>01 · Respekt</strong><br>Behandle Kollegen, Leitung und andere Personen respektvoll und professionell.</div>
+    <div class="rule"><strong>02 · Dienstanweisungen</strong><br>Befolge rechtmäßige dienstliche Anweisungen und interne Abläufe.</div>
+    <div class="rule"><strong>03 · Auftreten</strong><br>Achte auf ein gepflegtes, angemessenes und einheitliches Auftreten.</div>
+    <div class="rule"><strong>04 · Kommunikation</strong><br>Kommuniziere sachlich, klar und ohne Beleidigungen.</div>
+    <div class="rule"><strong>05 · Vertraulichkeit</strong><br>Gib interne Informationen nicht unbefugt weiter.</div>
+    <div class="rule"><strong>06 · Verantwortung</strong><br>Melde relevante Vorfälle und gehe verantwortungsvoll mit deiner Rolle um.</div>
+  </div><p class="muted" style="margin-top:18px">Das verbindliche Original-Regelwerk: <a style="color:var(--gold)" href="https://gtfregelwerkgrp03.netlify.app/" target="_blank" rel="noopener">GTF Regelwerk öffnen ↗</a></p></div>
+</section>
+
+<section id="checkliste" class="page hidden">
+  <h1>Checkliste</h1><div class="subtitle">Aufgaben für den GTF-Dienst. Haken werden lokal gespeichert.</div>
+  <div class="section"><div class="sectionhead"><h2>Dienst-Checkliste</h2><button class="secondary" onclick="resetChecks()">Zurücksetzen</button></div><div id="checks"></div></div>
+</section>
+
+<section id="kleidung" class="page hidden">
+  <h1>Kleidung</h1><div class="subtitle">Übersicht der vorgegebenen Kleidungs-IDs.</div>
+  <div class="section"><div class="sectionhead"><h2>Bekleidungsvorgaben</h2><span class="tag">GTF STANDARD</span></div>
+  <div class="outfit">
+    <div class="rule"><strong>Herren · Kopfbedeckung</strong><p>ID: 1</p><span class="muted">Farbe: 1</span></div>
+    <div class="rule"><strong>Herren · Oberteil</strong><p>ID: 21</p><span class="muted">Farbe: 1</span></div>
+    <div class="rule"><strong>Herren · Accessoires</strong><p>ID: 4</p><span class="muted">Farbe: 1</span></div>
+    <div class="rule"><strong>Herren · Weitere Accessoires</strong><p>ID: 6</p></div>
+    <div class="rule"><strong>Herren · Hose</strong><p>ID: 16</p><span class="muted">Farbe: 1</span></div>
+    <div class="rule"><strong>Herren · Schuhe</strong><p>ID: 4</p><span class="muted">Farbe: 1</span></div>
+    <div class="rule"><strong>Damen · Kopfbedeckung</strong><p>ID: 1</p><span class="muted">Farbe: 1</span></div>
+    <div class="rule"><strong>Damen · Oberteil</strong><p>ID: 21</p><span class="muted">Farbe: 1</span></div>
+    <div class="rule"><strong>Damen · Accessoires</strong><p>ID: 4</p><span class="muted">Farbe: 1</span></div>
+    <div class="rule"><strong>Damen · Weitere Accessoires</strong><p>ID: 6</p></div>
+    <div class="rule"><strong>Damen · Hose</strong><p>ID: 17</p><span class="muted">Farbe: 1</span></div>
+    <div class="rule"><strong>Damen · Schuhe</strong><p>ID: 4</p><span class="muted">Farbe: 1</span></div>
+  </div></div>
+</section>
+</main>
+</div>
+<footer>Powered by Moo Weshlove</footer>
+<script>
+const initialStaff=[
+["Leon Tutuh","A-004","GTF-Berater"],
+["Hakim Dark","A-018","Leitung"],
+["Moo Weshlove","A-107","Vize-Kandidat"],
+["Lucaa Black","A-103","Vize-Kandidat"],
+["Joni","—","GTF-Agent"],
+["Samra Weshlove","A-136","GTF-Agent"],
+["Aslahn Weshlove","A-102","GTF-Agent"],
+["Luziver Black","A-108","GTF-Agent"],
+["Ralf Engel","A-013","2. Abteilung"],
+["Kerem Exe","A-112","2. Abteilung"],
+["Abo Exe","A-016","2. Abteilung"],
+["Tomas Gill","A-088","2. Abteilung"],
+["Heval Forum","A-011","2. Abteilung"],
+["Jamal Forum","A-012","2. Abteilung"],
+["Nick Gravens","A-019","Aushilfe"]
+];
+let staff;
+try{staff=JSON.parse(localStorage.getItem("gtf_staff"))||initialStaff.slice()}catch(e){staff=initialStaff.slice()}
+function saveStaff(){try{localStorage.setItem("gtf_staff",JSON.stringify(staff))}catch(e){}}
+function showPage(id){
+document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
+document.getElementById(id).classList.remove("hidden");
+document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+if(id==="mitarbeiter")renderStaff();
+window.scrollTo(0,0)
+}
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+function renderStaff(){
+const q=(document.getElementById("search")?.value||"").toLowerCase();
+document.getElementById("staffRows").innerHTML=staff.map((s,i)=>({s,i})).filter(x=>x.s.join(" ").toLowerCase().includes(q)).map(({s,i})=>`<tr><td><strong>${esc(s[0])}</strong></td><td>${esc(s[1])}</td><td><span class="tag">${esc(s[2])}</span></td><td><button class="secondary" onclick="editStaff(${i})">Bearbeiten</button> <button class="danger" onclick="deleteStaff(${i})">Löschen</button></td></tr>`).join("");
+document.getElementById("statTotal").textContent=staff.length;
+document.getElementById("statLead").textContent=staff.filter(s=>s[2]==="Leitung").length;
+document.getElementById("statVice").textContent=staff.filter(s=>s[2]==="Vize-Kandidat").length
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function toggleForm(){document.getElementById("staffForm").classList.toggle("hidden")}
+function addStaff(){
+const n=document.getElementById("newName").value.trim(),id=document.getElementById("newId").value.trim(),r=document.getElementById("newRole").value;
+if(!n){alert("Bitte einen Namen eingeben.");return}
+staff.push([n,id||"—",r]);saveStaff();renderStaff();
+document.getElementById("newName").value="";document.getElementById("newId").value="";
+document.getElementById("staffForm").classList.add("hidden")
+}
+function editStaff(i){
+const s=staff[i],n=prompt("Name:",s[0]);if(n===null)return;
+const id=prompt("Personalnummer:",s[1]);if(id===null)return;
+const r=prompt("Neue Rolle / Abteilung:",s[2]);if(r===null)return;
+staff[i]=[n.trim()||s[0],id.trim()||"—",r.trim()||s[2]];saveStaff();renderStaff()
+}
+function deleteStaff(i){if(confirm("Mitarbeiter "+staff[i][0]+" wirklich löschen?")){staff.splice(i,1);saveStaff();renderStaff()}}
+const checkItems=["Dienstbeginn und Einsatzbereitschaft geprüft","Kleidung und Ausrüstung kontrolliert","Dienstliche Kommunikation überprüft","Aktuelle Anweisungen gelesen","Offene Aufgaben kontrolliert","Vorfälle ordnungsgemäß dokumentiert"];
+function renderChecks(){
+let done={};try{done=JSON.parse(localStorage.getItem("gtf_checks"))||{}}catch(e){}
+document.getElementById("checks").innerHTML=checkItems.map((t,i)=>`<label class="checkrow"><input type="checkbox" ${done[i]?"checked":""} onchange="setCheck(${i},this.checked)"><span>${t}</span></label>`).join("")
+}
+function setCheck(i,v){let d={};try{d=JSON.parse(localStorage.getItem("gtf_checks"))||{}}catch(e){}d[i]=v;try{localStorage.setItem("gtf_checks",JSON.stringify(d))}catch(e){}}
+function resetChecks(){if(confirm("Alle Haken zurücksetzen?")){localStorage.removeItem("gtf_checks");renderChecks()}}
+renderStaff();renderChecks();
+</script>
 </body>
 </html>
