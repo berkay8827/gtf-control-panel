@@ -46,13 +46,32 @@ footer{text-align:center;color:#69768b;font-size:12px;padding:30px;border-top:1p
 .notice{padding:12px;background:#182a2b;border:1px solid #315d51;border-radius:8px;color:#a7ebcd;margin-bottom:18px;font-size:13px}
 @media(max-width:850px){.layout{display:block}aside{width:100%;padding:10px}nav{display:flex;overflow-x:auto}nav button{min-width:max-content;width:auto}main{padding:16px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.formgrid{grid-template-columns:1fr 1fr}.outfit{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){.grid,.rulelist,.outfit,.formgrid{grid-template-columns:1fr}.brand{font-size:16px}header{padding:0 14px}}
+
+#loginPanel{max-width:430px;margin:8vh auto;padding:28px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+#loginPanel h1{margin-bottom:8px}#loginPanel .subtitle{margin-bottom:22px}
+#loginError{display:none;color:#ffd9df;background:#4b2029;padding:10px;border-radius:7px;margin:8px 0 14px;font-size:13px}
+#accountControls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+#accountEmail{font-size:12px;color:var(--muted)}
 </style>
 </head>
 <body>
 <header>
   <div class="brand"><span>GTF</span> CONTROL PANEL</div>
-  <div class="pill">● INTERNER BEREICH</div>
+  <div id="accountControls" class="hidden"><span id="accountEmail"></span><span id="accountRole" class="pill"></span><button class="secondary" onclick="logout()">Abmelden</button></div>
 </header>
+<section id="loginPanel" class="hidden">
+  <h1>GTF Login</h1>
+  <div class="subtitle">Melde dich mit deinem freigeschalteten Konto an.</div>
+  <form id="loginForm">
+    <label for="loginEmail">E-Mail</label>
+    <input id="loginEmail" type="email" autocomplete="username" required placeholder="name@beispiel.de">
+    <label for="loginPassword">Passwort</label>
+    <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="Passwort">
+    <div id="loginError" role="alert"></div>
+    <button class="action" id="loginButton" type="submit">Anmelden</button>
+  </form>
+</section>
+<div id="appShell" class="hidden">
 <div class="layout">
 <aside>
   <div class="navlabel">HAUPTMENÜ</div>
@@ -141,66 +160,131 @@ footer{text-align:center;color:#69768b;font-size:12px;padding:30px;border-top:1p
 </main>
 </div>
 <footer>Powered by Moo Weshlove</footer>
+</div><!-- appShell -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const initialStaff=[
-["Leon Tutuh","A-004","GTF-Berater"],
-["Hakim Dark","A-018","Leitung"],
-["Moo Weshlove","A-107","Vize-Kandidat"],
-["Lucaa Black","A-103","Vize-Kandidat"],
-["Joni","—","GTF-Agent"],
-["Samra Weshlove","A-136","GTF-Agent"],
-["Aslahn Weshlove","A-102","GTF-Agent"],
-["Luziver Black","A-108","GTF-Agent"],
-["Ralf Engel","A-013","2. Abteilung"],
-["Kerem Exe","A-112","2. Abteilung"],
-["Abo Exe","A-016","2. Abteilung"],
-["Tomas Gill","A-088","2. Abteilung"],
-["Heval Forum","A-011","2. Abteilung"],
-["Jamal Forum","A-012","2. Abteilung"],
-["Nick Gravens","A-019","Aushilfe"]
-];
-let staff;
-try{staff=JSON.parse(localStorage.getItem("gtf_staff"))||initialStaff.slice()}catch(e){staff=initialStaff.slice()}
-function saveStaff(){try{localStorage.setItem("gtf_staff",JSON.stringify(staff))}catch(e){}}
+
+const SUPABASE_URL = "https://arxjdmfzazulmgghqlgh.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_7JN7DOvD9BumCElLC1F-8Q_7_W_aBBv";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let staff = [];
+let currentUser = null;
+let currentRole = "employee";
+let loadingStaff = false;
+
+function showLogin(message=""){
+  document.getElementById("appShell").classList.add("hidden");
+  document.getElementById("accountControls").classList.add("hidden");
+  document.getElementById("loginPanel").classList.remove("hidden");
+  const err=document.getElementById("loginError");
+  err.textContent=message;
+  err.style.display=message?"block":"none";
+}
+function showApp(){
+  document.getElementById("loginPanel").classList.add("hidden");
+  document.getElementById("appShell").classList.remove("hidden");
+  document.getElementById("accountControls").classList.remove("hidden");
+  document.getElementById("accountEmail").textContent=currentUser?.email||"";
+  document.getElementById("accountRole").textContent=currentRole==="admin"?"ADMIN":"MITARBEITER";
+  document.getElementById("staffForm").classList.toggle("hidden",currentRole!=="admin");
+  document.querySelectorAll("#staffRows .admin-action").forEach(el=>el.classList.toggle("hidden",currentRole!=="admin"));
+}
+async function startApp(session){
+  if(!session?.user){currentUser=null;showLogin();return;}
+  currentUser=session.user;
+  const {data:profile,error}=await db.from("profiles").select("role").eq("id",currentUser.id).maybeSingle();
+  if(error || !profile){
+    await db.auth.signOut();
+    currentUser=null;
+    showLogin("Dein Konto hat kein Profil. Bitte kontaktiere den Admin.");
+    return;
+  }
+  currentRole=profile.role==="admin"?"admin":"employee";
+  showApp();
+  await renderStaff();
+  renderChecks();
+}
+document.getElementById("loginForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const button=document.getElementById("loginButton");
+  button.disabled=true;button.textContent="Anmeldung läuft …";
+  const email=document.getElementById("loginEmail").value.trim();
+  const password=document.getElementById("loginPassword").value;
+  const {error}=await db.auth.signInWithPassword({email,password});
+  button.disabled=false;button.textContent="Anmelden";
+  if(error){showLogin("Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen.");}
+});
+async function logout(){await db.auth.signOut();currentUser=null;showLogin("Du wurdest abgemeldet.");}
+db.auth.onAuthStateChange((event,session)=>{
+  if(event==="SIGNED_OUT"){currentUser=null;showLogin();}
+  else if(event==="SIGNED_IN" || event==="INITIAL_SESSION"){startApp(session);}
+});
+db.auth.getSession().then(({data})=>{if(data.session)startApp(data.session);else showLogin();});
+
 function showPage(id){
-document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
-document.getElementById(id).classList.remove("hidden");
-document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
-if(id==="mitarbeiter")renderStaff();
-window.scrollTo(0,0)
+  document.querySelectorAll(".page").forEach(p=>p.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+  if(id==="mitarbeiter")renderStaff();
+  window.scrollTo(0,0);
 }
 document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
-function renderStaff(){
-const q=(document.getElementById("search")?.value||"").toLowerCase();
-document.getElementById("staffRows").innerHTML=staff.map((s,i)=>({s,i})).filter(x=>x.s.join(" ").toLowerCase().includes(q)).map(({s,i})=>`<tr><td><strong>${esc(s[0])}</strong></td><td>${esc(s[1])}</td><td><span class="tag">${esc(s[2])}</span></td><td><button class="secondary" onclick="editStaff(${i})">Bearbeiten</button> <button class="danger" onclick="deleteStaff(${i})">Löschen</button></td></tr>`).join("");
-document.getElementById("statTotal").textContent=staff.length;
-document.getElementById("statLead").textContent=staff.filter(s=>s[2]==="Leitung").length;
-document.getElementById("statVice").textContent=staff.filter(s=>s[2]==="Vize-Kandidat").length
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+async function renderStaff(){
+  if(loadingStaff)return;
+  loadingStaff=true;
+  const body=document.getElementById("staffRows");
+  body.innerHTML='<tr><td colspan="4">Lade Mitarbeiter …</td></tr>';
+  const {data,error}=await db.from("staff").select("id,name,personnel_number,role").order("name");
+  loadingStaff=false;
+  if(error){body.innerHTML='<tr><td colspan="4">Mitarbeiter konnten nicht geladen werden.</td></tr>';return;}
+  staff=data||[];
+  const q=(document.getElementById("search")?.value||"").toLowerCase();
+  body.innerHTML=staff.filter(s=>(s.name+" "+(s.personnel_number||"")+" "+s.role).toLowerCase().includes(q)).map(s=>'<tr><td><strong>'+esc(s.name)+'</strong></td><td>'+esc(s.personnel_number||"—")+'</td><td><span class="tag">'+esc(s.role)+'</span></td><td>'+(currentRole==="admin"?'<button class="secondary admin-action" onclick="editStaff(\''+s.id+'\')">Bearbeiten</button> <button class="danger admin-action" onclick="deleteStaff(\''+s.id+'\')">Löschen</button>': '<span class="muted">—</span>')+'</td></tr>').join("");
+  document.getElementById("statTotal").textContent=staff.length;
+  document.getElementById("statLead").textContent=staff.filter(s=>s.role==="Leitung").length;
+  document.getElementById("statVice").textContent=staff.filter(s=>s.role==="Vize-Kandidat").length;
 }
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function toggleForm(){document.getElementById("staffForm").classList.toggle("hidden")}
-function addStaff(){
-const n=document.getElementById("newName").value.trim(),id=document.getElementById("newId").value.trim(),r=document.getElementById("newRole").value;
-if(!n){alert("Bitte einen Namen eingeben.");return}
-staff.push([n,id||"—",r]);saveStaff();renderStaff();
-document.getElementById("newName").value="";document.getElementById("newId").value="";
-document.getElementById("staffForm").classList.add("hidden")
+function toggleForm(){if(currentRole==="admin")document.getElementById("staffForm").classList.toggle("hidden");}
+async function addStaff(){
+  if(currentRole!=="admin")return;
+  const name=document.getElementById("newName").value.trim();
+  const personnel_number=document.getElementById("newId").value.trim()||"—";
+  const role=document.getElementById("newRole").value;
+  if(!name){alert("Bitte einen Namen eingeben.");return;}
+  const {error}=await db.from("staff").insert({name,personnel_number,role});
+  if(error){alert("Speichern fehlgeschlagen. Bitte erneut versuchen.");return;}
+  document.getElementById("newName").value="";
+  document.getElementById("newId").value="";
+  document.getElementById("staffForm").classList.add("hidden");
+  await renderStaff();
 }
-function editStaff(i){
-const s=staff[i],n=prompt("Name:",s[0]);if(n===null)return;
-const id=prompt("Personalnummer:",s[1]);if(id===null)return;
-const r=prompt("Neue Rolle / Abteilung:",s[2]);if(r===null)return;
-staff[i]=[n.trim()||s[0],id.trim()||"—",r.trim()||s[2]];saveStaff();renderStaff()
+async function editStaff(id){
+  if(currentRole!=="admin")return;
+  const s=staff.find(x=>x.id===id);if(!s)return;
+  const name=prompt("Name:",s.name);if(name===null)return;
+  const number=prompt("Personalnummer:",s.personnel_number||"—");if(number===null)return;
+  const role=prompt("Neue Rolle / Abteilung:",s.role);if(role===null)return;
+  const {error}=await db.from("staff").update({name:name.trim()||s.name,personnel_number:number.trim()||"—",role:role.trim()||s.role}).eq("id",id);
+  if(error){alert("Änderung fehlgeschlagen.");return;}
+  await renderStaff();
 }
-function deleteStaff(i){if(confirm("Mitarbeiter "+staff[i][0]+" wirklich löschen?")){staff.splice(i,1);saveStaff();renderStaff()}}
+async function deleteStaff(id){
+  if(currentRole!=="admin")return;
+  const s=staff.find(x=>x.id===id);if(!s)return;
+  if(!confirm("Mitarbeiter "+s.name+" wirklich löschen?"))return;
+  const {error}=await db.from("staff").delete().eq("id",id);
+  if(error){alert("Löschen fehlgeschlagen.");return;}
+  await renderStaff();
+}
 const checkItems=["Dienstbeginn und Einsatzbereitschaft geprüft","Kleidung und Ausrüstung kontrolliert","Dienstliche Kommunikation überprüft","Aktuelle Anweisungen gelesen","Offene Aufgaben kontrolliert","Vorfälle ordnungsgemäß dokumentiert"];
 function renderChecks(){
-let done={};try{done=JSON.parse(localStorage.getItem("gtf_checks"))||{}}catch(e){}
-document.getElementById("checks").innerHTML=checkItems.map((t,i)=>`<label class="checkrow"><input type="checkbox" ${done[i]?"checked":""} onchange="setCheck(${i},this.checked)"><span>${t}</span></label>`).join("")
+  let done={};try{done=JSON.parse(localStorage.getItem("gtf_checks"))||{}}catch(e){}
+  document.getElementById("checks").innerHTML=checkItems.map((t,i)=>'<label class="checkrow"><input type="checkbox" '+(done[i]?"checked":"")+' onchange="setCheck('+i+',this.checked)"><span>'+t+'</span></label>').join("");
 }
 function setCheck(i,v){let d={};try{d=JSON.parse(localStorage.getItem("gtf_checks"))||{}}catch(e){}d[i]=v;try{localStorage.setItem("gtf_checks",JSON.stringify(d))}catch(e){}}
-function resetChecks(){if(confirm("Alle Haken zurücksetzen?")){localStorage.removeItem("gtf_checks");renderChecks()}}
-renderStaff();renderChecks();
+function resetChecks(){if(confirm("Alle Haken zurücksetzen?")){localStorage.removeItem("gtf_checks");renderChecks();}}
+
 </script>
 </body>
 </html>
